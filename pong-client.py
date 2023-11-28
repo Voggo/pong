@@ -3,22 +3,33 @@ import pygame
 import sys
 import random
 import json
+import time
 
 
 class UDPEchoClient(protocol.DatagramProtocol):
     game_ele = None
     pong = None
+    ping = [0]*1000
+    last_time = 0
+    ping_index = 0
 
     def startProtocol(self):
         self.transport.connect("127.0.0.1", 8000)
         self.transport.write("0".encode())
 
     def datagramReceived(self, data, addr):
+        self.ping[self.ping_index] = time.time() - self.last_time
+        if self.ping_index == 999:
+            self.ping_index = 0
+        else:
+            self.ping_index += 1
+        print(f"Received: {data.decode()} from {addr}")
         game_ele = json.loads(data.decode())
         self.game_ele.game_ele = game_ele
-        print(f"Recieved: {self.game_ele.game_ele}")
+        # print(f"Recieved: {self.game_ele.game_ele}")
         self.pong.run(self.game_ele, self)
         self.transport.write((str(self.game_ele.player_speed)).encode())
+        self.last_time = time.time()
 
 
 class Game_elements:
@@ -107,6 +118,12 @@ class Pong:
             f"{game_ele['player_1_score']}", False, self.light_grey)
         self.screen.blit(opponent_text, (self.screen_width /
                          2 - 42, self.screen_height/2 - 16))
+        
+        # Draw ping
+        avrg_ping = round(1000 * sum(client.ping)/len(client.ping), 3)
+        ping_text = self.game_font.render(
+            f"{avrg_ping} ms", False, self.light_grey)
+        self.screen.blit(ping_text, (30, 20))
 
         # Update the display
         pygame.display.flip()
