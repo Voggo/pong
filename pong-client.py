@@ -1,10 +1,10 @@
-from twisted.internet import reactor, protocol
-import pygame
 import sys
 import random
 import json
 import time
 
+import pygame
+from twisted.internet import reactor, protocol
 
 class UDPEchoClient(protocol.DatagramProtocol):
     game_ele = None

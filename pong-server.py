@@ -1,11 +1,9 @@
-from twisted.internet import reactor, protocol
-import pygame
 import random
 import json
 import threading
-import sys
-import time
-import signal
+
+import pygame
+from twisted.internet import reactor, protocol
 
 
 class GameLogic:
