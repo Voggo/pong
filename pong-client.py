@@ -34,7 +34,7 @@ class UDPEchoClient(protocol.DatagramProtocol):
 
         # if no delay here then the player not running the server will have problems connecting to the server,
         # because the server will be sending data too fast to player 1(server)
-        time.sleep(0.01) # theretically limits the server update rate to 100hz (with overhead its closer to 80hz)
+        time.sleep(0.005) # theoretically limits the server update rate to 200hz
 
         # send player speed to server
         self.transport.write((str(self.game_ele.player_speed)).encode())
