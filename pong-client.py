@@ -52,7 +52,7 @@ class Game_elements:
 class Pong:
     # Initialize Pygame
     def __init__(self):
-        pygame.init()
+        pygame.init() # pylint: disable=no-member
 
         # Set up the game window
         self.screen_width = 700
@@ -80,19 +80,19 @@ class Pong:
 
         game.player_speed = 0
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT: # pylint: disable=no-member
                 client.transport.write("STOP".encode())
-                pygame.quit()
+                pygame.quit() # pylint: disable=no-member
                 sys.exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_DOWN:
+            if event.type == pygame.KEYDOWN: # pylint: disable=no-member
+                if event.key == pygame.K_DOWN: # pylint: disable=no-member
                     game.player_speed += 7
-                if event.key == pygame.K_UP:
+                if event.key == pygame.K_UP: # pylint: disable=no-member
                     game.player_speed -= 7
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_DOWN:
+            if event.type == pygame.KEYUP: # pylint: disable=no-member
+                if event.key == pygame.K_DOWN: # pylint: disable=no-member
                     game.player_speed -= 7
-                if event.key == pygame.K_UP:
+                if event.key == pygame.K_UP: # pylint: disable=no-member
                     game.player_speed += 7
 
         # Receive game state from server
