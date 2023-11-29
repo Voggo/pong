@@ -40,8 +40,8 @@ class GameLogic:
         self.game_ele['ball_speed_x'] = 0
 
     def start_ball(self):
-        self.game_ele['ball_speed_y'] = 4 + random.choice((1, -1))
-        self.game_ele['ball_speed_x'] = 4 + random.choice((1, -1))
+        self.game_ele['ball_speed_y'] = 5 + random.choice((1, -1))
+        self.game_ele['ball_speed_x'] = 5 + random.choice((1, -1))
 
 
 class UDPEchoServer(protocol.DatagramProtocol):
@@ -109,7 +109,7 @@ if __name__ == '__main__':
 
     # Create a new thread that runs the loop function
     t = threading.Thread(target=loop, args=(game,))
-    t.daemon = True  # allows system to exit even if thread is still running
+    t.daemon = True  # Allows system to exit even if thread is still running
     t.start()
 
     # Start the UDP server
