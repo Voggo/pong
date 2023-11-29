@@ -98,7 +98,7 @@ def loop(game):
         game.game_ele['player_1_y'] += game.game_ele['player_1_speed']
         game.game_ele['player_2_y'] += game.game_ele['player_2_speed']
 
-        pygame.time.Clock().tick(120)
+        pygame.time.Clock().tick(60)
 
 
 if __name__ == '__main__':

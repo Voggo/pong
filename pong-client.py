@@ -9,25 +9,34 @@ from twisted.internet import reactor, protocol
 class UDPEchoClient(protocol.DatagramProtocol):
     game_ele = None
     pong = None
-    ping = [0]*1000
+    ping = [-1]*1000
     last_time = 0
     ping_index = 0
 
     def startProtocol(self):
-        self.transport.connect("127.0.0.1", 8000)
+        self.transport.connect("192.168.142.44", 8000)
         self.transport.write("0".encode())
 
     def datagramReceived(self, data, addr):
+        # compute ping of last 1000 packets
         self.ping[self.ping_index] = time.time() - self.last_time
         if self.ping_index == 999:
             self.ping_index = 0
         else:
             self.ping_index += 1
-        print(f"Received: {data.decode()} from {addr}")
+
+
         game_ele = json.loads(data.decode())
         self.game_ele.game_ele = game_ele
-        # print(f"Recieved: {self.game_ele.game_ele}")
+
+        # update game
         self.pong.run(self.game_ele, self)
+
+        # if no delay here then the player not running the server will have problems connecting to the server,
+        # because the server will be sending data too fast to player 1(server)
+        time.sleep(0.01) # theretically limits the server update rate to 100hz (with overhead its closer to 80hz)
+
+        # send player speed to server
         self.transport.write((str(self.game_ele.player_speed)).encode())
         self.last_time = time.time()
 
@@ -74,6 +83,10 @@ class Pong:
 
         self.game_font = pygame.font.Font("freesansbold.ttf", 32)
 
+        self.last_update = time.time()
+        self.update_rate = 0
+        self.hz = 0
+
     def run(self, game, client):
         game_ele = game.game_ele
         # Handle events
@@ -118,6 +131,18 @@ class Pong:
             f"{game_ele['player_1_score']}", False, self.light_grey)
         self.screen.blit(opponent_text, (self.screen_width /
                          2 - 42, self.screen_height/2 - 16))
+        
+        # update rate in hz
+        self.hz = self.hz + 1
+        if time.time() - self.last_update >= 1:
+            print(f"update rate: {self.hz}")
+            self.last_update = time.time()
+            self.update_rate = self.hz
+            self.hz = 0
+
+        update_rate_text = self.game_font.render(
+            f"{self.update_rate} hz", False, self.light_grey)
+        self.screen.blit(update_rate_text, (30, 50))
         
         # Draw ping
         avrg_ping = round(1000 * sum(client.ping)/len(client.ping), 3)
