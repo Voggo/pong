@@ -5,11 +5,12 @@ import json
 import threading
 import sys
 import time
+import signal
 
 
 class GameLogic:
-    screen_width = 800
-    screen_height = 600
+    screen_width = 700
+    screen_height = 500
     game_ele = {}
     game_ele['ball_speed_x'] = 0
     game_ele['ball_speed_y'] = 0
@@ -90,9 +91,9 @@ def loop(game):
             print("Player 1 scored!")
             game.game_ele['player_1_score'] += 1
             game.reset_ball()
-        if game.game_ele['ball_x'] >= game.screen_width - 38 and game.game_ele['ball_y'] >= game.game_ele['player_1_y'] and game.game_ele['ball_y'] <= game.game_ele['player_1_y'] + 140:
+        if game.game_ele['ball_x'] >= game.screen_width - 38 and game.game_ele['ball_y'] >= game.game_ele['player_1_y'] and game.game_ele['ball_y'] <= game.game_ele['player_1_y'] + 140 and game.game_ele['ball_speed_x'] > 0:
             game.game_ele['ball_speed_x'] *= -1
-        if game.game_ele['ball_x'] <= 38 and game.game_ele['ball_y'] >= game.game_ele['player_2_y'] and game.game_ele['ball_y'] <= game.game_ele['player_2_y'] + 140:
+        if game.game_ele['ball_x'] <= 38 and game.game_ele['ball_y'] >= game.game_ele['player_2_y'] and game.game_ele['ball_y'] <= game.game_ele['player_2_y'] + 140 and game.game_ele['ball_speed_x'] < 0:
             game.game_ele['ball_speed_x'] *= -1
 
         # Move paddles
@@ -110,6 +111,7 @@ if __name__ == '__main__':
 
     # Create a new thread that runs the loop function
     t = threading.Thread(target=loop, args=(game,))
+    t.daemon = True  # allows system to exit even if thread is still running
     t.start()
 
     # Start the UDP server
