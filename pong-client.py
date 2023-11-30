@@ -12,10 +12,13 @@ class UDPEchoClient(protocol.DatagramProtocol):
     ping = [-1]*1000
     last_time = 0
     ping_index = 0
+    packet_id = 0
+    packets_delivered = [True]*1000
+
 
     def startProtocol(self):
-        self.transport.connect("192.168.142.44", 8000)
-        self.transport.write("0".encode())
+        self.transport.connect("127.0.0.1", 8000)
+        self.transport.write("0,0".encode())
 
     def datagramReceived(self, data, addr):
         # compute ping of last 1000 packets
@@ -29,6 +32,17 @@ class UDPEchoClient(protocol.DatagramProtocol):
         game_ele = json.loads(data.decode())
         self.game_ele.game_ele = game_ele
 
+        # set packet as delivered
+        self.packets_delivered[game_ele['packet_id']] = True
+
+        # check packet packet loss
+        temp_lost_packets = 0
+        for id in self.packets_delivered:
+            if not id:
+                temp_lost_packets += 1
+        self.packet_loss = temp_lost_packets
+            
+
         # update game
         self.pong.run(self.game_ele, self)
 
@@ -36,8 +50,17 @@ class UDPEchoClient(protocol.DatagramProtocol):
         # because the server will be sending data too fast to player 1(server)
         time.sleep(0.005) # theoretically limits the server update rate to 200hz
 
-        # send player speed to server
-        self.transport.write((str(self.game_ele.player_speed)).encode())
+        # update packet id
+        if self.packet_id < 999:
+            self.packet_id += 1
+        else:
+            self.packet_id = 0
+        self.packets_delivered[self.packet_id] = False
+
+        # send player speed and packet id to server
+        packet = f"{str(self.game_ele.player_speed)},{self.packet_id}"
+        print(f"packet: {packet}")
+        self.transport.write(packet.encode())
         self.last_time = time.time()
 
 
@@ -149,6 +172,10 @@ class Pong:
         ping_text = self.game_font.render(
             f"{avrg_ping} ms", False, self.light_grey)
         self.screen.blit(ping_text, (30, 20))
+
+        # draw lost packets
+        lost_packets_text = self.game_font.render(f"{client.packet_loss} PL/s", False, self.light_grey)
+        self.screen.blit(lost_packets_text, (30, 80))
 
         # Update the display
         pygame.display.flip()

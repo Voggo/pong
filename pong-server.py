@@ -20,6 +20,7 @@ class GameLogic:
     game_ele['player_2_y'] = 0
     game_ele['player_1_score'] = 0
     game_ele['player_2_score'] = 0
+    game_ele['packet_id'] = 0
 
     def reset_game(self):
         self.game_ele['ball_speed_x'] = 0
@@ -56,11 +57,15 @@ class UDPEchoServer(protocol.DatagramProtocol):
             return
         if addr not in self.clients:
             self.clients.append(addr)
-        # print(f"Received: {data.decode()} from {addr}")
+
+        data = (data.decode()).split(",")
+        print(f"Received: {data} from {addr}")
+
         if addr == self.clients[0]:
-            self.game.game_ele['player_1_speed'] += int(data.decode())
+            self.game.game_ele['player_1_speed'] += int(data[0])
         if len(self.clients) > 1 and addr == self.clients[1]:
-            self.game.game_ele['player_2_speed'] += int(data.decode())
+            self.game.game_ele['player_2_speed'] += int(data[0])
+        self.game.game_ele['packet_id'] = int(data[1])
 
         # Send game state back to client
         game_state = json.dumps(self.game.game_ele)
