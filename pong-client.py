@@ -48,7 +48,7 @@ class UDPEchoClient(protocol.DatagramProtocol):
 
         # if no delay here then the player not running the server will have problems connecting to the server,
         # because the server will be sending data too fast to player 1(server)
-        # time.sleep(0.005) # theoretically limits the server update rate to 200hz
+        time.sleep(0.005) # theoretically limits the server update rate to 200hz
 
         # update packet id
         if self.packet_id < 999:
