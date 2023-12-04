@@ -9,7 +9,7 @@ from twisted.internet import reactor, protocol
 class UDPEchoClient(protocol.DatagramProtocol):
     game_ele = None
     pong = None
-    ping = [-1]*1000
+    ping = [-1]*100
     last_time = 0
     ping_index = 0
     packet_id = 0
@@ -23,7 +23,7 @@ class UDPEchoClient(protocol.DatagramProtocol):
     def datagramReceived(self, data, addr):
         # compute ping of last 1000 packets
         self.ping[self.ping_index] = time.time() - self.last_time
-        if self.ping_index == 999:
+        if self.ping_index == 99:
             self.ping_index = 0
         else:
             self.ping_index += 1
@@ -48,7 +48,7 @@ class UDPEchoClient(protocol.DatagramProtocol):
 
         # if no delay here then the player not running the server will have problems connecting to the server,
         # because the server will be sending data too fast to player 1(server)
-        time.sleep(0.005) # theoretically limits the server update rate to 200hz
+        # time.sleep(0.005) # theoretically limits the server update rate to 200hz
 
         # update packet id
         if self.packet_id < 999:
@@ -168,7 +168,8 @@ class Pong:
         self.screen.blit(update_rate_text, (30, 50))
         
         # Draw ping
-        avrg_ping = round(1000 * sum(client.ping)/len(client.ping), 3)
+        ping_list = [ping for ping in client.ping if ping != -1]
+        avrg_ping = round(1000 * sum(ping_list)/len(ping_list), 3)
         ping_text = self.game_font.render(
             f"{avrg_ping} ms", False, self.light_grey)
         self.screen.blit(ping_text, (30, 20))

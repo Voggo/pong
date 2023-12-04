@@ -1,6 +1,7 @@
 import random
 import json
 import threading
+import time
 
 import pygame
 from twisted.internet import reactor, protocol
@@ -59,7 +60,6 @@ class UDPEchoServer(protocol.DatagramProtocol):
             self.clients.append(addr)
 
         data = (data.decode()).split(",")
-        print(f"Received: {data} from {addr}")
 
         if addr == self.clients[0]:
             self.game.game_ele['player_1_speed'] += int(data[0])
