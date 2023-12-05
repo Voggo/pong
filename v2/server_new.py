@@ -76,8 +76,8 @@ class GameLogic:
         self.game_ele['ball_speed_x'] = 0
 
     def start_ball(self):
-        self.game_ele['ball_speed_y'] = 5 + random.choice((1, -1))
-        self.game_ele['ball_speed_x'] = 5 + random.choice((1, -1))
+        self.game_ele['ball_speed_y'] = 4 + random.choice((1, -1))
+        self.game_ele['ball_speed_x'] = 4 + random.choice((1, -1))
 
 def loop(game):
     while True:
@@ -108,7 +108,7 @@ def loop(game):
         game.game_ele['player_1_y'] += game.game_ele['player_1_speed']
         game.game_ele['player_2_y'] += game.game_ele['player_2_speed']
 
-        pygame.time.Clock().tick(60)
+        pygame.time.Clock().tick(100)
 
 
 if __name__ == "__main__":

@@ -21,7 +21,7 @@ def Connect2Server(game, metrics):
     last_time = 0
     ping_index = 0
     packet_id = 0
-    packets_delivered = [False]*1000
+    packets_delivered = [True]*1000
     hz = 0
     last_update = time.time()
 
