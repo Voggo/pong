@@ -78,9 +78,13 @@ def Connect2Server(game, metrics):
             last_time = time.time()
             packet_id += 1
         except socket.error:
+            time.sleep(0.01) # add delay to not spam the server
+            msg_To_Server = f"{game.player_speed},{packet_id}"
+            UDPClientSocket.sendto(msg_To_Server.encode(), serverAddressPort)
             print("No data received")
-        pygame.time.Clock().tick(200)
-      
+
+        pygame.time.Clock().tick(60)
+
 
 
 class Game_elements:
