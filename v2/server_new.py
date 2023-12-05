@@ -1,18 +1,16 @@
 import socketserver
 import threading
-import time
 import random
 import json
 
 import pygame
 
 # Create a tuple with IP Address and Port Number
-
 ServerAddress = ("192.168.142.44", 8000)
 
 # Subclass the DatagramRequestHandler
-
 class MyUDPRequestHandler(socketserver.DatagramRequestHandler):
+    """ Handles datagram requests from clients """
     clients = []
     game = None
 
@@ -34,10 +32,8 @@ class MyUDPRequestHandler(socketserver.DatagramRequestHandler):
             self.game.game_ele['player_2_speed'] = int(data[0])
         self.game.game_ele['packet_id'] = int(data[1])
 
-
         # Send game state back to client
         game_state = json.dumps(self.game.game_ele)
-        # print(f"Sending: {game_state} to {addr}")
         self.wfile.write(game_state.encode())
 
 
@@ -79,7 +75,10 @@ class GameLogic:
         self.game_ele['ball_speed_y'] = 4 + random.choice((1, -1))
         self.game_ele['ball_speed_x'] = 4 + random.choice((1, -1))
 
+
 def loop(game):
+    """ Main game loop """
+
     while True:
         # Update game state
         if game.game_ele['ball_speed_x'] == 0 and game.game_ele["player_1_speed"] != 0:
@@ -112,16 +111,18 @@ def loop(game):
 
 
 if __name__ == "__main__":
+    # Create a GameLogic Instance
     game = GameLogic()
 
-    # Create a Server Instance
+    # Create a Server Instance and share the GameLogic instance
     t = threading.Thread(target=loop, args=(game,))
     t.daemon = True
     t.start()
 
+    # Create a UDP Server Instance and share the GameLogic instance
     MyUDPRequestHandler.game = game
-    UDPServerObject = socketserver.ThreadingUDPServer(ServerAddress, MyUDPRequestHandler)
+    UDPServerObject = socketserver.ThreadingUDPServer(
+        ServerAddress, MyUDPRequestHandler)
 
     # Make the server wait forever serving connections
-
     UDPServerObject.serve_forever()

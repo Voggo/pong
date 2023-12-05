@@ -6,11 +6,8 @@ import random
 import sys
 import json
 
-
-# Buffer size for receiving the datagrams from server
-
 # Server IP address and Port number
-serverAddressPort = ("192.168.142.44", 8000)
+serverAddressPort = ("192.168.142.42", 8000)
 
 
 # Connect2Server forms the thread - for each connection made to the server
@@ -31,8 +28,8 @@ def Connect2Server(game, metrics):
     
     UDPClientSocket.setblocking(0)
 
-    msg_To_Server = f"{game.player_speed},{packet_id}"
-    UDPClientSocket.sendto(msg_To_Server.encode(), serverAddressPort)
+    msg_to_server = f"{game.player_speed},{packet_id}"
+    UDPClientSocket.sendto(msg_to_server.encode(), serverAddressPort)
 
     # Send message to server using created UDP socket
     while True:
@@ -40,7 +37,6 @@ def Connect2Server(game, metrics):
             # update rate in hz
             hz = hz + 1
             if time.time() - last_update >= 1:
-                print(f"update rate: {hz}")
                 last_update = time.time()
                 metrics["update_rate"] = hz
                 hz = 0
@@ -72,15 +68,15 @@ def Connect2Server(game, metrics):
 
             packets_delivered[packet_id] = False
 
-            msg_To_Server = f"{game.player_speed},{packet_id}"
-            UDPClientSocket.sendto(msg_To_Server.encode(), serverAddressPort)
+            msg_to_server = f"{game.player_speed},{packet_id}"
+            UDPClientSocket.sendto(msg_to_server.encode(), serverAddressPort)
 
             last_time = time.time()
             packet_id += 1
         except socket.error:
-            time.sleep(0.01) # add delay to not spam the server
-            msg_To_Server = f"{game.player_speed},{packet_id}"
-            UDPClientSocket.sendto(msg_To_Server.encode(), serverAddressPort)
+            time.sleep(0.01) # add delay to not spam the server if already overloaded
+            msg_to_server = f"{game.player_speed},{packet_id}"
+            UDPClientSocket.sendto("0,0".encode(), serverAddressPort)
             print("No data received")
 
         pygame.time.Clock().tick(60)
