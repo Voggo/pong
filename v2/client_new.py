@@ -22,45 +22,47 @@ def Connect2Server(game, metrics):
     ping_index = 0
     packet_id = 0
     packets_delivered = [True]*1000
-    
-    # Create a socket instance - A datagram socket
-    UDPClientSocket = socket.socket(
-        family=socket.AF_INET, type=socket.SOCK_DGRAM)
-    
-    msgToServer = f"{game.player_speed},{packet_id}"
-    UDPClientSocket.sendto(msgToServer.encode(), serverAddressPort)
 
-    # Send message to server using created UDP socket
-    while True:
-
-        # compute ping of last 100 packets
-        ping[ping_index] = time.time() - last_time
-        if ping_index == 99:
-            ping_index = 0
-        else:
-            ping_index += 1
-
-        data = UDPClientSocket.recvfrom(bufferSize)
-        game_ele = json.loads(data[0].decode())
-        game.game_ele = game_ele
-
-
-        # set packet as delivered
-        packets_delivered[game_ele['packet_id']] = True
-
-        # check packet packet loss
-        temp_lost_packets = 0
-        for id in packets_delivered:
-            if not id:
-                temp_lost_packets += 1
-        packet_loss = temp_lost_packets
-
+    while True:    
+        
+        # Create a socket instance - A datagram socket
+        UDPClientSocket = socket.socket(
+            family=socket.AF_INET, type=socket.SOCK_DGRAM)
+        
         msgToServer = f"{game.player_speed},{packet_id}"
         UDPClientSocket.sendto(msgToServer.encode(), serverAddressPort)
 
-        last_time = time.time()
+        # Send message to server using created UDP socket
+        while True:
 
-        pygame.time.Clock().tick(30)
+            # compute ping of last 100 packets
+            ping[ping_index] = time.time() - last_time
+            if ping_index == 99:
+                ping_index = 0
+            else:
+                ping_index += 1
+
+            data = UDPClientSocket.recvfrom(bufferSize)
+            game_ele = json.loads(data[0].decode())
+            game.game_ele = game_ele
+
+
+            # set packet as delivered
+            packets_delivered[game_ele['packet_id']] = True
+
+            # check packet packet loss
+            temp_lost_packets = 0
+            for id in packets_delivered:
+                if not id:
+                    temp_lost_packets += 1
+            packet_loss = temp_lost_packets
+
+            msgToServer = f"{game.player_speed},{packet_id}"
+            UDPClientSocket.sendto(msgToServer.encode(), serverAddressPort)
+
+            last_time = time.time()
+
+            pygame.time.Clock().tick(30)
 
 
 class Game_elements:
