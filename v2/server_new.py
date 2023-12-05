@@ -8,7 +8,7 @@ import pygame
 
 # Create a tuple with IP Address and Port Number
 
-ServerAddress = ("127.0.0.1", 8000)
+ServerAddress = ("192.168.142.44", 8000)
 
 # Subclass the DatagramRequestHandler
 
@@ -28,14 +28,13 @@ class MyUDPRequestHandler(socketserver.DatagramRequestHandler):
             self.clients.append(self.client_address)
 
         data = (data.decode()).split(",")
+        print(f"Received: {data} from {self.client_address}")
         if self.client_address == self.clients[0]:
             self.game.game_ele['player_1_speed'] = int(data[0])
         if len(self.clients) > 1 and self.client_address == self.clients[1]:
             self.game.game_ele['player_2_speed'] = int(data[0])
         self.game.game_ele['packet_id'] = int(data[1])
 
-        print(f"player 1 speed: {self.game.game_ele['player_1_speed']}")
-        print(f"player 2 speed: {self.game.game_ele['player_2_speed']}")
 
         # Send game state back to client
         game_state = json.dumps(self.game.game_ele)
@@ -98,7 +97,6 @@ def loop(game):
             game.game_ele['player_2_score'] += 1
             game.reset_ball()
         if game.game_ele['ball_x'] >= game.screen_width:
-            print(f"ball x: {game.game_ele['ball_x']}")
             print("Player 1 scored!")
             game.game_ele['player_1_score'] += 1
             game.reset_ball()

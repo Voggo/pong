@@ -10,7 +10,7 @@ import json
 # Buffer size for receiving the datagrams from server
 
 # Server IP address and Port number
-serverAddressPort = ("127.0.0.1", 8000)
+serverAddressPort = ("192.168.142.44", 8000)
 
 
 # Connect2Server forms the thread - for each connection made to the server
@@ -60,7 +60,7 @@ def Connect2Server(game, metrics):
 
         last_time = time.time()
 
-        pygame.time.Clock().tick(60)
+        pygame.time.Clock().tick(30)
 
 
 class Game_elements:
