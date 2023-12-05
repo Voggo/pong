@@ -22,30 +22,39 @@ def Connect2Server(game, metrics):
     ping_index = 0
     packet_id = 0
     packets_delivered = [True]*1000
+    hz = 0
+    last_update = time.time()
 
-    while True:    
-        
+    while True:
+
         # Create a socket instance - A datagram socket
         UDPClientSocket = socket.socket(
             family=socket.AF_INET, type=socket.SOCK_DGRAM)
-        
+
         msgToServer = f"{game.player_speed},{packet_id}"
         UDPClientSocket.sendto(msgToServer.encode(), serverAddressPort)
 
         # Send message to server using created UDP socket
         while True:
-
-            # compute ping of last 100 packets
-            ping[ping_index] = time.time() - last_time
-            if ping_index == 99:
-                ping_index = 0
-            else:
-                ping_index += 1
-
+            # update rate in hz
+            hz = hz + 1
+            if time.time() - last_update >= 1:
+                print(f"update rate: {hz}")
+                last_update = time.time()
+                metrics["update_rate"] = hz
+                hz = 0
+            
             data = UDPClientSocket.recvfrom(bufferSize)
             game_ele = json.loads(data[0].decode())
             game.game_ele = game_ele
 
+            # compute ping of last 100 packets
+            ping[ping_index] = round((time.time() - last_time) * 1000, 3)
+            metrics["ping"] = sum(ping)/100
+            if ping_index == 99:
+                ping_index = 0
+            else:
+                ping_index += 1
 
             # set packet as delivered
             packets_delivered[game_ele['packet_id']] = True
@@ -55,14 +64,14 @@ def Connect2Server(game, metrics):
             for id in packets_delivered:
                 if not id:
                     temp_lost_packets += 1
-            packet_loss = temp_lost_packets
+            metrics["packet_loss"] = temp_lost_packets
 
             msgToServer = f"{game.player_speed},{packet_id}"
             UDPClientSocket.sendto(msgToServer.encode(), serverAddressPort)
 
             last_time = time.time()
 
-            pygame.time.Clock().tick(30)
+            pygame.time.Clock().tick(120)
 
 
 class Game_elements:
@@ -85,7 +94,7 @@ class Game_elements:
 class Pong:
     # Initialize Pygame
     def __init__(self):
-        pygame.init() # pylint: disable=no-member
+        pygame.init()  # pylint: disable=no-member
 
         # Set up the game window
         self.screen_width = 700
@@ -116,25 +125,25 @@ class Pong:
         # Handle events
 
         for event in pygame.event.get():
-            if event.type == pygame.QUIT: # pylint: disable=no-member
-                pygame.quit() # pylint: disable=no-member
+            if event.type == pygame.QUIT:  # pylint: disable=no-member
+                pygame.quit()  # pylint: disable=no-member
                 sys.exit()
-            if event.type == pygame.KEYDOWN: # pylint: disable=no-member
-                if event.key == pygame.K_DOWN: # pylint: disable=no-member
+            if event.type == pygame.KEYDOWN:  # pylint: disable=no-member
+                if event.key == pygame.K_DOWN:  # pylint: disable=no-member
                     game.player_speed = 7
-                if event.key == pygame.K_UP: # pylint: disable=no-member
+                if event.key == pygame.K_UP:  # pylint: disable=no-member
                     game.player_speed = -7
-            if event.type == pygame.KEYUP: # pylint: disable=no-member
-                if event.key == pygame.K_DOWN: # pylint: disable=no-member
+            if event.type == pygame.KEYUP:  # pylint: disable=no-member
+                if event.key == pygame.K_DOWN:  # pylint: disable=no-member
                     game.player_speed = 0
-                if event.key == pygame.K_UP: # pylint: disable=no-member
+                if event.key == pygame.K_UP:  # pylint: disable=no-member
                     game.player_speed = 0
 
         # Receive game state from server
         self.ball.centerx = game_ele['ball_x']
         self.ball.centery = game_ele['ball_y']
         self.player.y = game_ele['player_1_y']
-        self.opponent.y =  game_ele['player_2_y']
+        self.opponent.y = game_ele['player_2_y']
 
         # Draw game elements
         self.screen.fill(self.bg_color)
@@ -153,37 +162,31 @@ class Pong:
             f"{game_ele['player_1_score']}", False, self.light_grey)
         self.screen.blit(opponent_text, (self.screen_width /
                          2 - 42, self.screen_height/2 - 16))
-        
-        # # update rate in hz
-        # self.hz = self.hz + 1
-        # if time.time() - self.last_update >= 1:
-        #     print(f"update rate: {self.hz}")
-        #     self.last_update = time.time()
-        #     self.update_rate = self.hz
-        #     self.hz = 0
 
-        # update_rate_text = self.game_font.render(
-        #     f"{self.update_rate} hz", False, self.light_grey)
-        # self.screen.blit(update_rate_text, (30, 50))
-        
-        # # Draw ping
-        # ping_list = [ping for ping in client.ping if ping != -1]
-        # avrg_ping = round(1000 * sum(ping_list)/len(ping_list), 3)
-        # ping_text = self.game_font.render(
-        #     f"{avrg_ping} ms", False, self.light_grey)
-        # self.screen.blit(ping_text, (30, 20))
+        # Draw Update rate
+        update_rate_text = self.game_font.render(
+            f"{metrics["update_rate"]} hz", False, self.light_grey)
+        self.screen.blit(update_rate_text, (30, 50))
 
-        # # draw lost packets
-        # lost_packets_text = self.game_font.render(f"{client.packet_loss} PL/s", False, self.light_grey)
-        # self.screen.blit(lost_packets_text, (30, 80))
+        # Draw ping
+        ping_text = self.game_font.render(
+            f"{round(metrics["ping"], 3)} ms", False, self.light_grey)
+        self.screen.blit(ping_text, (30, 20))
+
+        # draw lost packets
+        lost_packets_text = self.game_font.render(
+            f"{metrics["packet_loss"]} PL/s", False, self.light_grey)
+        self.screen.blit(lost_packets_text, (30, 80))
 
         # Update the display
         pygame.display.flip()
 
+
 def loop(game, pong, metrics):
     while True:
         pong.run(game, metrics)
-        pygame.time.Clock().tick(60)
+        pygame.time.Clock().tick(100)
+
 
 if __name__ == "__main__":
     print("Client - Main thread started")
@@ -192,7 +195,8 @@ if __name__ == "__main__":
     pong = Pong()
     metrics = {"packet_loss": 0, "ping": 0, "update_rate": 0}
 
-    ThreadInstance = threading.Thread(target=Connect2Server, args=(game_ele, metrics,))
+    ThreadInstance = threading.Thread(
+        target=Connect2Server, args=(game_ele, metrics,))
     ThreadInstance.daemon = True
     ThreadInstance.start()
 
