@@ -21,21 +21,22 @@ def Connect2Server(game, metrics):
     last_time = 0
     ping_index = 0
     packet_id = 0
-    packets_delivered = [True]*1000
+    packets_delivered = [False]*1000
     hz = 0
     last_update = time.time()
 
+    # Create a socket instance - A datagram socket
+    UDPClientSocket = socket.socket(
+        family=socket.AF_INET, type=socket.SOCK_DGRAM)
+    
+    UDPClientSocket.setblocking(0)
+
+    msg_To_Server = f"{game.player_speed},{packet_id}"
+    UDPClientSocket.sendto(msg_To_Server.encode(), serverAddressPort)
+
+    # Send message to server using created UDP socket
     while True:
-
-        # Create a socket instance - A datagram socket
-        UDPClientSocket = socket.socket(
-            family=socket.AF_INET, type=socket.SOCK_DGRAM)
-
-        msgToServer = f"{game.player_speed},{packet_id}"
-        UDPClientSocket.sendto(msgToServer.encode(), serverAddressPort)
-
-        # Send message to server using created UDP socket
-        while True:
+        try:
             # update rate in hz
             hz = hz + 1
             if time.time() - last_update >= 1:
@@ -43,7 +44,7 @@ def Connect2Server(game, metrics):
                 last_update = time.time()
                 metrics["update_rate"] = hz
                 hz = 0
-            
+
             data = UDPClientSocket.recvfrom(bufferSize)
             game_ele = json.loads(data[0].decode())
             game.game_ele = game_ele
@@ -56,6 +57,9 @@ def Connect2Server(game, metrics):
             else:
                 ping_index += 1
 
+            if packet_id == 1000:
+                packet_id = 0
+
             # set packet as delivered
             packets_delivered[game_ele['packet_id']] = True
 
@@ -66,12 +70,17 @@ def Connect2Server(game, metrics):
                     temp_lost_packets += 1
             metrics["packet_loss"] = temp_lost_packets
 
-            msgToServer = f"{game.player_speed},{packet_id}"
-            UDPClientSocket.sendto(msgToServer.encode(), serverAddressPort)
+            packets_delivered[packet_id] = False
+
+            msg_To_Server = f"{game.player_speed},{packet_id}"
+            UDPClientSocket.sendto(msg_To_Server.encode(), serverAddressPort)
 
             last_time = time.time()
-
-            pygame.time.Clock().tick(120)
+            packet_id += 1
+        except socket.error:
+            print("No data received")
+        pygame.time.Clock().tick(200)
+      
 
 
 class Game_elements:
@@ -165,17 +174,17 @@ class Pong:
 
         # Draw Update rate
         update_rate_text = self.game_font.render(
-            f"{metrics["update_rate"]} hz", False, self.light_grey)
+            f"{metrics['update_rate']} hz", False, self.light_grey)
         self.screen.blit(update_rate_text, (30, 50))
 
         # Draw ping
         ping_text = self.game_font.render(
-            f"{round(metrics["ping"], 3)} ms", False, self.light_grey)
+            f"{round(metrics['ping'], 3)} ms", False, self.light_grey)
         self.screen.blit(ping_text, (30, 20))
 
         # draw lost packets
         lost_packets_text = self.game_font.render(
-            f"{metrics["packet_loss"]} PL/s", False, self.light_grey)
+            f"{metrics['packet_loss']} pr. 1000 packets", False, self.light_grey)
         self.screen.blit(lost_packets_text, (30, 80))
 
         # Update the display

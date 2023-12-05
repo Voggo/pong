@@ -17,7 +17,6 @@ class MyUDPRequestHandler(socketserver.DatagramRequestHandler):
     game = None
 
     def handle(self):
-        print(type(self.client_address))
         data = self.rfile.readline().strip()
 
         if data.decode() == "STOP":
