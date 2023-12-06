@@ -6,7 +6,7 @@ import json
 import pygame
 
 # Create a tuple with IP Address and Port Number
-ServerAddress = ("192.168.142.44", 8000)
+SERVER_ADDRESS = ("192.168.142.44", 8000)
 
 # Subclass the DatagramRequestHandler
 class MyUDPRequestHandler(socketserver.DatagramRequestHandler):
@@ -122,7 +122,7 @@ if __name__ == "__main__":
     # Create a UDP Server Instance and share the GameLogic instance
     MyUDPRequestHandler.game = game
     UDPServerObject = socketserver.ThreadingUDPServer(
-        ServerAddress, MyUDPRequestHandler)
+        SERVER_ADDRESS, MyUDPRequestHandler)
 
     # Make the server wait forever serving connections
     UDPServerObject.serve_forever()

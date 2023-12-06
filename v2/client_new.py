@@ -11,7 +11,7 @@ serverAddressPort = ("192.168.142.42", 8000)
 
 
 # Connect2Server forms the thread - for each connection made to the server
-def Connect2Server(game, metrics):
+def connect_to_server(game, metrics):
     bufferSize = 1024
     game_ele = None
     ping = [-1]*100
@@ -83,7 +83,7 @@ def Connect2Server(game, metrics):
 
 
 
-class Game_elements:
+class GameElements:
     game_ele = {}
     player_speed = 0
 
@@ -200,12 +200,12 @@ def loop(game, pong, metrics):
 if __name__ == "__main__":
     print("Client - Main thread started")
 
-    game_ele = Game_elements()
+    game_ele = GameElements()
     pong = Pong()
     metrics = {"packet_loss": 0, "ping": 0, "update_rate": 0}
 
     ThreadInstance = threading.Thread(
-        target=Connect2Server, args=(game_ele, metrics,))
+        target=connect_to_server, args=(game_ele, metrics,))
     ThreadInstance.daemon = True
     ThreadInstance.start()
 
