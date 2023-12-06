@@ -33,6 +33,7 @@ def connect_to_server(game, metrics):
 
     # Send message to server using created UDP socket
     while True:
+        game_ele = game.game_ele
         try:
             # update rate in hz
             hz = hz + 1
@@ -40,11 +41,12 @@ def connect_to_server(game, metrics):
                 last_update = time.time()
                 metrics["update_rate"] = hz
                 hz = 0
+            while True:
+                data = UDPClientSocket.recvfrom(bufferSize)
+                game_ele = json.loads(data[0].decode())
+                game.game_ele = game_ele
 
-            data = UDPClientSocket.recvfrom(bufferSize)
-            game_ele = json.loads(data[0].decode())
-            game.game_ele = game_ele
-
+        except socket.error:
             # compute ping of last 100 packets
             ping[ping_index] = round((time.time() - last_time) * 1000, 3)
             metrics["ping"] = sum(ping)/100
@@ -57,7 +59,8 @@ def connect_to_server(game, metrics):
                 packet_id = 0
 
             # set packet as delivered
-            packets_delivered[game_ele['packet_id']] = True
+            if game_ele.get('packet_id') != None:
+                packets_delivered[game_ele['packet_id']] = True
 
             # check packet packet loss
             temp_lost_packets = 0
@@ -73,18 +76,8 @@ def connect_to_server(game, metrics):
 
             last_time = time.time()
             packet_id += 1
-            pygame.time.Clock().tick(60)
-        except socket.error:
-            # add delay to not spam the server if already overloaded
-            time.sleep(0.02)
-            msg_to_server = f"{game.player_speed},{packet_id}"
-            UDPClientSocket.sendto("0,0".encode(), serverAddressPort)
-            while True:
-                try:
-                    _ = UDPClientSocket.recvfrom(bufferSize)
-                except socket.error:
-                    break
-            print("No data received")
+            
+        pygame.time.Clock().tick(80)
 
 
 
