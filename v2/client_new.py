@@ -7,8 +7,9 @@ import sys
 import json
 
 # Server IP address and Port number
-serverAddressPort = ("192.168.142.44", 8000)
+serverAddressPort = ("127.0.0.1", 8000)
 
+# "192.168.142.44", 8000 my phone hotspot
 
 # Connect2Server forms the thread - for each connection made to the server
 def connect_to_server(game, metrics):
@@ -77,7 +78,7 @@ def connect_to_server(game, metrics):
             last_time = time.time()
             packet_id += 1
             
-        pygame.time.Clock().tick(80)
+        pygame.time.Clock().tick(60)
 
 
 

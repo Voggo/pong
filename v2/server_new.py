@@ -6,7 +6,7 @@ import json
 import pygame
 
 # Create a tuple with IP Address and Port Number
-SERVER_ADDRESS = ("192.168.142.44", 8000)
+SERVER_ADDRESS = ("127.0.0.1", 8000)
 
 # Subclass the DatagramRequestHandler
 class MyUDPRequestHandler(socketserver.DatagramRequestHandler):
