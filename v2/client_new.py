@@ -77,11 +77,13 @@ def connect_to_server(game, metrics):
         except socket.error:
             # add delay to not spam the server if already overloaded
             time.sleep(0.02)
-            UDPClientSocket.close()
-            UDPClientSocket = socket.socket(
-                family=socket.AF_INET, type=socket.SOCK_DGRAM)
             msg_to_server = f"{game.player_speed},{packet_id}"
             UDPClientSocket.sendto("0,0".encode(), serverAddressPort)
+            while True:
+                try:
+                    _ = UDPClientSocket.recvfrom(bufferSize)
+                except socket.error:
+                    break
             print("No data received")
 
 
