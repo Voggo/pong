@@ -7,7 +7,7 @@ import sys
 import json
 
 # Server IP address and Port number
-serverAddressPort = ("192.168.142.42", 8000)
+serverAddressPort = ("192.168.142.44", 8000)
 
 
 # Connect2Server forms the thread - for each connection made to the server
@@ -25,7 +25,7 @@ def connect_to_server(game, metrics):
     # Create a socket instance - A datagram socket
     UDPClientSocket = socket.socket(
         family=socket.AF_INET, type=socket.SOCK_DGRAM)
-    
+
     UDPClientSocket.setblocking(0)
 
     msg_to_server = f"{game.player_speed},{packet_id}"
@@ -74,13 +74,16 @@ def connect_to_server(game, metrics):
             last_time = time.time()
             packet_id += 1
         except socket.error:
-            time.sleep(0.01) # add delay to not spam the server if already overloaded
+            # add delay to not spam the server if already overloaded
+            time.sleep(0.02)
             msg_to_server = f"{game.player_speed},{packet_id}"
             UDPClientSocket.sendto("0,0".encode(), serverAddressPort)
+            UDPClientSocket.close()
+            UDPClientSocket = socket.socket(
+                family=socket.AF_INET, type=socket.SOCK_DGRAM)
             print("No data received")
 
         pygame.time.Clock().tick(60)
-
 
 
 class GameElements:
